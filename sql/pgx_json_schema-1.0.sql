@@ -62,3 +62,14 @@ CREATE OR REPLACE FUNCTION "avro_is_valid"(
 STRICT
 LANGUAGE c /* Rust */
 AS 'MODULE_PATHNAME', 'avro_is_valid_wrapper';
+
+-- src/json_schema.rs:44
+-- pgx_json_schema::json_schema::json_schema_is_valid_json
+CREATE OR REPLACE FUNCTION "json_schema_is_valid_json"(
+	"schema" jsonb, /* pgx::datum::json::JsonB */
+	"instance" jsonb /* pgx::datum::json::JsonB */
+) RETURNS jsonb
+STRICT
+LANGUAGE c /* Rust */
+AS 'MODULE_PATHNAME', 'json_schema_is_valid_json_wrapper';
+

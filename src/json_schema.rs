@@ -44,6 +44,17 @@ fn json_schema_get_errors(
     new.into_iter()
 }
 
+#[pg_extern]
+fn json_schema_is_valid_json(schema: JsonB, instance: JsonB) -> JsonB {
+    jsonschema::is_valid(&schema.0, &instance.0)
+    let result = JSONSchema::compile(&schema.0)
+        .unwrap_or_else(|err| panic!("Error compiling schema: {:#?}", err));
+    let output: BasicOutput = schema.apply(&instance.0).basic();
+
+    JsonB(serde_json::to_value(output).unwrap());
+
+}
+
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
 mod tests {
