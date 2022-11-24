@@ -1,4 +1,4 @@
-ARG POSTGRES_VERSION=13
+ARG POSTGRES_VERSION=14
 ARG PGX_JSON_SCHEMA_VERSION=main
 
 # Use build stage to keep all the souce code out of the final image

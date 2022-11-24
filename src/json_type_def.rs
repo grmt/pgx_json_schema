@@ -1,5 +1,6 @@
 use jtd::Schema;
-use pgx::*;
+use pgx::prelude::*;
+use pgx::JsonB;
 
 #[pg_extern]
 fn jtd_is_valid(schema: JsonB, instance: JsonB) -> bool {
@@ -14,12 +15,12 @@ fn jtd_is_valid(schema: JsonB, instance: JsonB) -> bool {
 fn jtd_get_errors(
     schema: JsonB,
     instance: JsonB,
-) -> impl std::iter::Iterator<Item = (name!(instance_path, String), name!(schema_path, String))> {
+) -> TableIterator<'static, (name!(instance_path, String), name!(schema_path, String))> {
     let parsed_schema =
         Schema::from_serde_schema(serde_json::from_value(schema.0).unwrap()).unwrap();
     let result = jtd::validate(&parsed_schema, &instance.0, Default::default()).unwrap();
 
-    let new: Vec<(String, String)> = result
+    let errors: Vec<(String, String)> = result
         .into_iter()
         .map(|e| {
             let (instance_path, schema_path) = e.into_owned_paths();
@@ -38,7 +39,7 @@ fn jtd_get_errors(
         })
         .collect();
 
-    new.into_iter()
+    TableIterator::new(errors.into_iter())
 }
 
 #[cfg(any(test, feature = "pg_test"))]
