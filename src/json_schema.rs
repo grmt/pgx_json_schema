@@ -8,7 +8,7 @@ fn json_schema_is_valid(schema: JsonB, instance: JsonB) -> bool {
 }
 
 #[pg_extern]
-fn json_schema_get_errors(
+fn json_schema_get_validation_errors(
     schema: JsonB,
     instance: JsonB
 ) -> TableIterator<
@@ -46,7 +46,7 @@ fn json_schema_get_errors(
 }
 
 #[pg_extern]
-fn json_schema_get_error(schema: JsonB, instance: JsonB) -> JsonB {
+fn json_schema_get_errors_json(schema: JsonB, instance: JsonB) -> JsonB {
     let result = JSONSchema::compile(&schema.0)
         .unwrap_or_else(|err| panic!("Error compiling schema: {:#?}", err));
 
@@ -55,6 +55,62 @@ fn json_schema_get_error(schema: JsonB, instance: JsonB) -> JsonB {
     JsonB(serde_json::to_value(output).unwrap())
 
 }
+
+#[pg_extern]
+fn json_schema_get_errors(schema: JsonB, instance: JsonB)
+ -> TableIterator<
+'static, (
+    name!(description, String),
+    name!(instance_location, String),
+    name!(keyword_location, String),
+)
+> {
+let result = JSONSchema::compile(&schema.0)
+        .unwrap_or_else(|err| panic!("Error compiling schema: {:#?}", err));
+
+    let output: BasicOutput = result.apply(&instance.0).basic();
+
+
+    let mut results: Vec<(String, String, String)> = Vec::new();
+
+    match output {
+        BasicOutput::Valid(annotations) => {
+            for annotation in annotations {
+                results.push((
+                        annotation.value().to_string(),
+                        annotation.instance_location().to_string(),
+                        annotation.keyword_location().to_string(),
+                    )
+                );
+                // println!(
+                //     "Value: {} at path {}",
+                //     annotation.value(),
+                //     annotation.instance_location()
+                // )
+            }
+        },
+        BasicOutput::Invalid(errors) => {
+            for error in errors {
+                results.push((
+                        error.error_description().to_string(),
+                        error.instance_location().to_string(),
+                        error.keyword_location().to_string(),
+                    )
+                );
+                // println!(
+                //     "Error: {} at path {}",
+                //     error.error_description(),
+                //     error.instance_location()
+                // )
+            }
+        }
+    }
+
+    TableIterator::new(results.into_iter())
+
+
+}
+
 
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
@@ -71,21 +127,21 @@ mod tests {
 
 
     #[pg_test]
-    fn test_json_schema_get_error() {
-        let valid = Spi::get_one::<String>(
-            "SELECT json_schema_is_valid('{\"maxLength\": 5}', '\"foobar\"'::jsonb)",
+    fn test_json_schema_get_validation_errors() {
+        let (_value, description) = Spi::get_two::<JsonB, String>(
+            "SELECT * FROM json_schema_get_validation_errors('{\"maxLength\": 5}', '\"foobar\"'::jsonb)",
         );
-        assert_eq!(valid, Some("{\"valid\": false, \"errors\": [{\"error\": \"\\\"foobaasdfr\\\" is longer than 5 characters\", \"keywordLocation\": \"/maxLength\", \"instanceLocation\": \"\"}]}".to_string() )
+        assert_eq!(description, Some("\"foobar\" is longer than 5 characters".to_string() )
         )
     }
 
     #[pg_test]
     fn test_json_schema_get_errors() {
-        let (_value, description) = Spi::get_two::<JsonB, String>(
-            "SELECT * from json_schema_get_errors('{\"maxLength\": 5}', '\"foobar\"'::jsonb)",
+        let (one, _two, _three) = Spi::get_three::<String, String, String>(
+            "SELECT * FROM json_schema_get_errors('{\"maxLength\": 5}', '\"foobar\"'::jsonb)",
         );
         assert_eq!(
-            description,
+            one,
             Some("\"foobar\" is longer than 5 characters".to_string())
         )
     }
