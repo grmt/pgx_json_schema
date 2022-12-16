@@ -64,6 +64,16 @@ error_value |             description              |        details         | in
 "foobar"    | "foobar" is longer than 5 characters | MaxLength { limit: 5 } |               | /maxLength
 ```
 
+> **Warning**
+> A warning about performance. 
+> 
+> Because the jsonschema crate must complile the schema before use, and Postgres uses
+> separate heap per thread, this extension must compile the schema every time the function is invoked. This leads to
+> pretty terrible performance for validating any large amount of data. 
+> 
+> To fix this we'd need to get the jsonschema crate to implement Copy/Clone on the JSONSchema struct and then move the
+> compiled schema into shared memory where it could be reused. Will explore this in the future.
+
 #### JSON Type Definition
 
 > **_NOTE:_**  The jtd library only reports the position of the validation errors, not a description.
