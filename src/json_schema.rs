@@ -1,5 +1,6 @@
 use jsonschema::JSONSchema;
-use pgx::*;
+use pgx::prelude::*;
+use pgx::JsonB;
 
 #[pg_extern]
 fn json_schema_is_valid(schema: JsonB, instance: JsonB) -> bool {
@@ -10,8 +11,9 @@ fn json_schema_is_valid(schema: JsonB, instance: JsonB) -> bool {
 fn json_schema_get_errors(
     schema: JsonB,
     instance: JsonB,
-) -> impl std::iter::Iterator<
-    Item = (
+) -> TableIterator<
+    'static,
+    (
         name!(error_value, JsonB),
         name!(description, String),
         name!(details, String),
@@ -41,7 +43,7 @@ fn json_schema_get_errors(
         })
         .collect();
 
-    new.into_iter()
+    TableIterator::new(new.into_iter())
 }
 
 #[cfg(any(test, feature = "pg_test"))]
