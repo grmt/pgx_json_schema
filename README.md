@@ -16,6 +16,11 @@ Supported drafts:
 * Draft 6
 * Draft 4 (except optional bignum)
 
+Partially supported drafts (some keywords are not implemented):
+
+* Draft 2019-09 
+* Draft 2020-12
+
 Bonus support added for:
 * [JSON Type Definition (JTD)](https://jsontypedef.com/) via the [jtd crate](https://docs.rs/jtd/)
 * [Apache Avro](https://avro.apache.org/) via the [avro_rs crate](https://docs.rs/avro-rs/)
