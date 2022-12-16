@@ -149,7 +149,7 @@ select avro_is_valid('{
 - [ ] More testing
 - [ ] Benchmarking
 - [x] Add more schema types like [JTD](https://jsontypedef.com/) and [Avro](https://avro.apache.org/)
-- [ ] Support newer JSON Schema drafts
+- [X] Support newer JSON Schema drafts
 - [x] Add Dockerfile with installation example
 
 ### Prior Art
