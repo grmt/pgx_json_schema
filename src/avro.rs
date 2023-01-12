@@ -1,6 +1,7 @@
 use avro_rs::types::Record;
 use avro_rs::{Schema, Writer};
-use pgx::*;
+use pgx::prelude::*;
+use pgx::JsonB;
 
 #[pg_extern]
 fn avro_is_valid(schema: JsonB, instance: JsonB) -> bool {

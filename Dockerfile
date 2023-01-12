@@ -1,7 +1,7 @@
-ARG POSTGRES_VERSION=14
+ARG POSTGRES_VERSION=15
 ARG PGX_JSON_SCHEMA_VERSION=main
 
-# Use build stage to keep all the souce code out of the final image
+# Use build stage to keep all the source code out of the final image
 FROM postgres:$POSTGRES_VERSION as build
 ARG POSTGRES_VERSION
 ARG PGX_JSON_SCHEMA_VERSION
@@ -35,7 +35,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="~/.cargo/bin:${PATH}"
 
 # Install PGX
-WORKDIR $HOME
+WORKDIR $HOME /tmp
 RUN cargo install cargo-pgx
 RUN cargo pgx init --pg$POSTGRES_VERSION /usr/bin/pg_config
 

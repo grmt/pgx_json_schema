@@ -10,9 +10,10 @@ fn json_schema_is_valid(schema: JsonB, instance: JsonB) -> bool {
 #[pg_extern]
 fn json_schema_get_validation_errors(
     schema: JsonB,
-    instance: JsonB
+    instance: JsonB,
 ) -> TableIterator<
-    'static, (
+    'static,
+    (
         name!(error_value, JsonB),
         name!(description, String),
         name!(details, String),

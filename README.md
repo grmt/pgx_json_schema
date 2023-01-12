@@ -16,6 +16,11 @@ Supported drafts:
 * Draft 6
 * Draft 4 (except optional bignum)
 
+Partially supported drafts (some keywords are not implemented):
+
+* Draft 2019-09 
+* Draft 2020-12
+
 Bonus support added for:
 * [JSON Type Definition (JTD)](https://jsontypedef.com/) via the [jtd crate](https://docs.rs/jtd/)
 * [Apache Avro](https://avro.apache.org/) via the [avro_rs crate](https://docs.rs/avro-rs/)
@@ -58,6 +63,16 @@ error_value |             description              |        details         | in
 ------------+--------------------------------------+------------------------+---------------+-------------
 "foobar"    | "foobar" is longer than 5 characters | MaxLength { limit: 5 } |               | /maxLength
 ```
+
+> **Warning**
+> A warning about performance. 
+> 
+> Because the jsonschema crate must complile the schema before use, and Postgres uses
+> separate heap per thread, this extension must compile the schema every time the function is invoked. This leads to
+> pretty terrible performance for validating any large amount of data. 
+> 
+> To fix this we'd need to get the jsonschema crate to implement Copy/Clone on the JSONSchema struct and then move the
+> compiled schema into shared memory where it could be reused. Will explore this in the future.
 
 #### JSON Type Definition
 
@@ -134,7 +149,7 @@ select avro_is_valid('{
 - [ ] More testing
 - [ ] Benchmarking
 - [x] Add more schema types like [JTD](https://jsontypedef.com/) and [Avro](https://avro.apache.org/)
-- [ ] Support newer JSON Schema drafts
+- [X] Support newer JSON Schema drafts
 - [x] Add Dockerfile with installation example
 
 ### Prior Art
